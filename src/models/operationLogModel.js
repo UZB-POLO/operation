@@ -13,7 +13,8 @@ const operationLogSchema = new Schema({
   masterBranch: {
     type: String,
     required: true,
-  },  
+  },
+  
   status: {
     type: Number,
     required: true,

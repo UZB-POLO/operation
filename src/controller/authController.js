@@ -1,5 +1,5 @@
 const User = require('../models/userModel');
-const Account = require('../models/accountModel');  // faqat HEAD da bor
+const Account = require('../models/accountModel'); 
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');

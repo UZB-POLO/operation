@@ -9,6 +9,7 @@ exports.getItems = async (req, res) => {
     let operations = await Operation.find()
       .populate('paymentType', 'name')
       .lean();
+
     operations = operations.map(op => {
       if (op?.paymentType?.name) {
         op.paymentType = op.paymentType.name;
@@ -28,45 +29,46 @@ exports.createOperation = async (req, res) => {
     const { currency, amount, type, paymentType } = req.body;
 
     const user = await User.findById(userID);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+    } else {
+      const paymentTypeDoc = await PaymentType.findById(paymentType);
+      if (!paymentTypeDoc) {
+        res.status(400).json({ message: "Invalid paymentType ID" });
+      } else {
+        const operation = await Operation.create({
+          branch: user.branch,
+          masterBranch: user.masterBranch,
+          empID: userID,
+          currency,
+          amount,
+          type,
+          status: 1,
+          paymentType: paymentTypeDoc._id,
+        });
 
-    const paymentTypeDoc = await PaymentType.findById(paymentType);
-    if (!paymentTypeDoc) {
-      return res.status(400).json({ message: "Invalid paymentType ID" });
+        const populatedOperation = await Operation.findById(operation._id)
+          .populate({ path: 'paymentType', select: 'name -_id' })
+          .lean();
+
+        if (populatedOperation?.paymentType?.name) {
+          populatedOperation.paymentType = populatedOperation.paymentType.name;
+        }
+
+        const operationLog = await OperationLog.create({
+          empID: userID,
+          branch: operation.branch,
+          masterBranch: operation.masterBranch,
+          status: operation.status,
+          transaction_id: operation._id,
+        });
+
+        res.status(201).json({
+          message: "Operation created and processed successfully",
+          data: { operation: populatedOperation, operationLog },
+        });
+      }
     }
-
-    const operation = await Operation.create({
-      branch: user.branch,
-      masterBranch: user.masterBranch,
-      empID: userID,
-      currency,
-      amount,
-      type,
-      status: 1,
-      paymentType: paymentTypeDoc._id,
-    });
-
-    const populatedOperation = await Operation.findById(operation._id)
-      .populate('paymentType', 'name')
-      .lean();
-
-    if (populatedOperation?.paymentType?.name) {
-      populatedOperation.paymentType = populatedOperation.paymentType.name;
-    }
-
-    const operationLog = await OperationLog.create({
-      empID: userID,
-      branch: operation.branch,
-      masterBranch: operation.masterBranch,
-      status: operation.status,
-      transaction_id: operation._id,
-    });
-
-    res.status(201).json({
-      message: "Operation created and processed successfully",
-      data: { operation: populatedOperation, operationLog },
-    });
-
   } catch (err) {
     res.status(500).json({
       message: "Operation failed",
@@ -75,70 +77,58 @@ exports.createOperation = async (req, res) => {
   }
 };
 
-
 exports.addApprove = async (req, res) => {
   try {
     const { id: operationID } = req.params;
     const user = req.user;
 
     if (!operationID.match(/^[0-9a-fA-F]{24}$/)) {
-      return res.status(400).json({ message: "Invalid operation ID format" });
-    }
+      res.status(400).json({ message: "Invalid operation ID format" });
+    } else {
+      const operation = await Operation.findById(operationID);
+      if (!operation) {
+        res.status(404).json({ message: "Operation not found" });
+      } else if (operation.status !== 1) {
+        res.status(400).json({ message: "Only operations with status 1 can be approved" });
+      } else {
+        const account = await Account.findOne({
+          empID: user.id,
+          currency: operation.currency
+        });
 
-    const operation = await Operation.findById(operationID);
-    if (!operation) {
-      return res.status(404).json({ message: "Operation not found" });
-    }
+        if (!account) {
+          res.status(404).json({ message: "Account not found" });
+        } else if (operation.type === 'R' && account.saldo < operation.amount) {
+          res.status(400).json({ message: "Not enough balance" });
+        } else {
+          if (operation.type === 'P') {
+            account.in += operation.amount;
+            account.saldo += operation.amount;
+          } else if (operation.type === 'R') {
+            account.out += operation.amount;
+            account.saldo -= operation.amount;
+          }
 
-    if (operation.status !== 1) {
-      return res.status(400).json({ message: "Only operations with status 1 can be approved" });
-    }
+          operation.status = 3;
 
-    const account = await Account.findOne({
-      empID: user.id,
-      currency: operation.currency
-    });
+          await account.save();
+          await operation.save();
 
-    if (!account) {
-      return res.status(404).json({ message: "Account not found" });
-    }
+          const operationLog = await OperationLog.create({
+            empID: user.id,
+            branch: operation.branch,
+            masterBranch: operation.masterBranch,
+            status: 3,
+            transaction_id: String(operation._id),
+          });
 
-    if (operation.type === 'R' && account.saldo < operation.amount) {
-      return res.status(400).json({ message: "Not enough balance" });
-    }
-
-    if (operation.type === 'P') {
-      account.in += operation.amount;
-      account.saldo += operation.amount;
-    }
-
-    if (operation.type === 'R') {
-      account.out += operation.amount;
-      account.saldo -= operation.amount;
-    }
-
-    operation.status = 3;
-
-    await account.save();
-    await operation.save();
-
-    const operationLog = await OperationLog.create({
-      empID: user.id,
-      branch: operation.branch,
-      masterBranch: operation.masterBranch,
-      status: 3,
-      transaction_id: String(operation._id),
-    });
-
-    res.status(200).json({
-      message: "Operation approved successfully",
-      data: {
-        operation,
-        account,
-        operationLog
+          res.status(200).json({
+            message: "Operation approved successfully",
+            data: { operation, account, operationLog }
+          });
+        }
       }
-    });
-
+    }
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
@@ -147,8 +137,11 @@ exports.addApprove = async (req, res) => {
 exports.update = async (req, res) => {
   try {
     const operation = await Operation.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!operation) return res.status(404).json({ message: "Operation not found" });
-    res.json(operation);
+    if (!operation) {
+      res.status(404).json({ message: "Operation not found" });
+    } else {
+      res.json(operation);
+    }
   } catch (err) {
     res.status(500).json({ message: "Update failed", error: err.message });
   }
@@ -160,56 +153,53 @@ exports.remove = async (req, res) => {
     const user = req.user;
 
     const operation = await Operation.findById(operationID).populate('paymentType');
-    if (!operation) return res.status(404).json({ message: "Operation not found" });
-
-    if (operation.status === 1) {
+    if (!operation) {
+      res.status(404).json({ message: "Operation not found" });
+    } else if (operation.status === 1) {
       operation.status = 0;
       await operation.save();
-      return res.json({ message: "Operation marked as deleted (status 0)" });
-    }
-
-    if (operation.status === 3) {
+      res.json({ message: "Operation marked as deleted (status 0)" });
+    } else if (operation.status === 3) {
       const paymentTypeName = operation.paymentType?.name?.toLowerCase();
 
       if (paymentTypeName === 'безналичный') {
         operation.status = 0;
         await operation.save();
-        return res.json({ message: "безналичный operation cancelled (status 0)" });
-      }
-
-      if (paymentTypeName === 'наличные') {
+        res.json({ message: "безналичный operation cancelled (status 0)" });
+      } else if (paymentTypeName === 'наличные') {
         const account = await Account.findOne({
           empID: user.id,
           currency: operation.currency
         });
 
         if (!account) {
-          return res.status(404).json({ message: "Account not found" });
+          res.status(404).json({ message: "Account not found" });
+          
         }
+        else if (operation.type === 'R' && account.saldo < operation.amount) {
+          res.status(400).json({ message: "Not enough balance" });}
+         else {
+          if (operation.type === 'R') {
+            account.out -= operation.amount;
+            account.saldo += operation.amount;
+          } else if (operation.type === 'P') {
+            account.in -= operation.amount;
+            account.saldo -= operation.amount;
+          }
 
-        if (operation.type === 'P') {
-          account.out -= operation.amount;
-          account.saldo += operation.amount;
+          operation.status = 0;
+
+          await account.save();
+          await operation.save();
+
+          res.json({ message: "Cash operation reversed and marked as deleted (status 0)" });
         }
-
-        if (operation.type === 'R') {
-          account.in -= operation.amount;
-          account.saldo -= operation.amount;
-        }
-
-        operation.status = 0;
-
-        await account.save();
-        await operation.save();
-
-        return res.json({ message: "Cash operation reversed and marked as deleted (status 0)" });
+      } else {
+        res.status(400).json({ message: "Unknown payment type" });
       }
-
-      return res.status(400).json({ message: "Unknown payment type" });
+    } else {
+      res.status(400).json({ message: "Operation cannot be deleted in its current state" });
     }
-
-    res.status(400).json({ message: "Operation cannot be deleted in its current state" });
-
   } catch (err) {
     res.status(500).json({ message: "Delete failed", error: err.message });
   }
