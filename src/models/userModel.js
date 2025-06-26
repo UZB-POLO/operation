@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const moment = require("moment");
 
 const userSchema = new mongoose.Schema({
   ID: {
@@ -44,7 +43,7 @@ const userSchema = new mongoose.Schema({
   },
   calday: {
     type: String,
-    default: moment().format("YYYY-MM-DD")
+    default: () => new Date().toISOString().slice(0, 10)  
   },
   createdAt: {
     type: Date,
@@ -56,6 +55,7 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+
 userSchema.pre("save", async function (next) {
   if (this.isNew) {
     const last = await this.constructor.findOne().sort({ ID: -1 }).lean();
@@ -63,3 +63,5 @@ userSchema.pre("save", async function (next) {
   }
   next();
 });
+
+module.exports = mongoose.model('User', userSchema);
