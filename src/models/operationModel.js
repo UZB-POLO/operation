@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 const { Schema, model, Types } = require("mongoose");
+=======
+const { Schema, model } = require("mongoose");
+>>>>>>> 84f9b039bf7a007186110b6d1e932540048a32a3
 const moment = require("moment");
 
 const operationModel = new Schema({
@@ -10,10 +14,13 @@ const operationModel = new Schema({
             "01145" // Shayxontohur,
         ]
     },
+<<<<<<< HEAD
     masterBranch: {
         type: String,
         required: true
     },
+=======
+>>>>>>> 84f9b039bf7a007186110b6d1e932540048a32a3
     currency: {
         type: String,
         required: true,
@@ -26,6 +33,7 @@ const operationModel = new Schema({
         type: Number,
         required: true
     },
+<<<<<<< HEAD
     type: {
         type: String,
     },
@@ -45,6 +53,11 @@ const operationModel = new Schema({
     calday: {
         type: String,
         default: moment().format("YYYY-MM-DD")
+=======
+    calday:{
+        type: String,
+        default: moment ().format("YYYY-MM-DD")
+>>>>>>> 84f9b039bf7a007186110b6d1e932540048a32a3
     },
     createdAt: {
         type: Date,
@@ -52,5 +65,8 @@ const operationModel = new Schema({
     },
 })
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 84f9b039bf7a007186110b6d1e932540048a32a3
 module.exports = model("Operation", operationModel);

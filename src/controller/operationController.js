@@ -1,4 +1,5 @@
 const Operation = require('../models/operationModel');
+<<<<<<< HEAD
 const User = require('../models/userModel');
 const Account = require('../models/accountModel');
 const OperationLog = require('../models/operationLogModel');
@@ -218,4 +219,25 @@ exports.remove = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Delete failed", error: err.message });
   }
+=======
+
+exports.getAll = async (req, res) => {
+  const operations = await Operation.find();
+  res.json(operations);
+};
+
+exports.create = async (req, res) => {
+  const operation = await Operation.create(req.body);
+  res.status(201).json(operation);
+};
+
+exports.update = async (req, res) => {
+  const operation = await Operation.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json(operation);
+};
+
+exports.remove = async (req, res) => {
+  await Operation.findByIdAndDelete(req.params.id);
+  res.json({ message: "Deleted" });
+>>>>>>> 84f9b039bf7a007186110b6d1e932540048a32a3
 };
