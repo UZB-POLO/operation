@@ -2,29 +2,18 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
-<<<<<<< HEAD
-const router = require('./routes');
 
-=======
->>>>>>> 84f9b039bf7a007186110b6d1e932540048a32a3
 dotenv.config();
 
 const app = express();
+
 app.use(express.json());
 app.use(cookieParser());
-<<<<<<< HEAD
-app.use("/api", router);
 
 
-=======
+const router = require('./routes');
 
-// Routes
-const authRoutes = require('./routes/authRoutes');
-const operationRoutes = require('./routes/operation');
-
-app.use('/api/auth', authRoutes);
-app.use('/api/operations', operationRoutes);
->>>>>>> 84f9b039bf7a007186110b6d1e932540048a32a3
+app.use('/api', router);
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {

@@ -1,5 +1,4 @@
 const Operation = require('../models/operationModel');
-<<<<<<< HEAD
 const User = require('../models/userModel');
 const Account = require('../models/accountModel');
 const OperationLog = require('../models/operationLogModel');
@@ -22,7 +21,6 @@ exports.getItems = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
 
 exports.createOperation = async (req, res) => {
   try {
@@ -49,13 +47,12 @@ exports.createOperation = async (req, res) => {
     });
 
     const populatedOperation = await Operation.findById(operation._id)
-  .populate('paymentType', 'name')
-  .lean();
+      .populate('paymentType', 'name')
+      .lean();
 
-if (populatedOperation?.paymentType?.name) {
-  populatedOperation.paymentType = populatedOperation.paymentType.name;
-}
-
+    if (populatedOperation?.paymentType?.name) {
+      populatedOperation.paymentType = populatedOperation.paymentType.name;
+    }
 
     const operationLog = await OperationLog.create({
       empID: userID,
@@ -156,8 +153,6 @@ exports.update = async (req, res) => {
   }
 };
 
-
-
 exports.remove = async (req, res) => {
   try {
     const { id: operationID } = req.params;
@@ -166,14 +161,12 @@ exports.remove = async (req, res) => {
     const operation = await Operation.findById(operationID).populate('paymentType');
     if (!operation) return res.status(404).json({ message: "Operation not found" });
 
-   
     if (operation.status === 1) {
       operation.status = 0;
       await operation.save();
       return res.json({ message: "Operation marked as deleted (status 0)" });
     }
 
-   
     if (operation.status === 3) {
       const paymentTypeName = operation.paymentType?.name?.toLowerCase();
 
@@ -219,25 +212,4 @@ exports.remove = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Delete failed", error: err.message });
   }
-=======
-
-exports.getAll = async (req, res) => {
-  const operations = await Operation.find();
-  res.json(operations);
-};
-
-exports.create = async (req, res) => {
-  const operation = await Operation.create(req.body);
-  res.status(201).json(operation);
-};
-
-exports.update = async (req, res) => {
-  const operation = await Operation.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  res.json(operation);
-};
-
-exports.remove = async (req, res) => {
-  await Operation.findByIdAndDelete(req.params.id);
-  res.json({ message: "Deleted" });
->>>>>>> 84f9b039bf7a007186110b6d1e932540048a32a3
 };

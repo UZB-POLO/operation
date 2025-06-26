@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-<<<<<<< HEAD
 const moment = require("moment");
 
 const userSchema = new mongoose.Schema({
@@ -54,9 +53,8 @@ const userSchema = new mongoose.Schema({
   loginAt: {
     type: Date,
     default: Date.now
-  }
+  },
 });
-
 
 userSchema.pre("save", async function (next) {
   if (this.isNew) {
@@ -65,12 +63,3 @@ userSchema.pre("save", async function (next) {
   }
   next();
 });
-=======
-
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
-});
-
->>>>>>> 84f9b039bf7a007186110b6d1e932540048a32a3
-module.exports = mongoose.model('User', userSchema);
