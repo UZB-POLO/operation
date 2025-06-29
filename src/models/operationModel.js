@@ -1,7 +1,7 @@
-const { Schema, model } = require("mongoose");
-const moment = require("moment");
+const mongoose = require('mongoose');
+const moment = require('moment');
 
-const operationModel = new Schema({
+const operationSchema = new mongoose.Schema({
   branch: {
     type: String,
     required: true,
@@ -21,7 +21,7 @@ const operationModel = new Schema({
     required: true,
     enum: [
       "000", // UZS
-      "840"  // USD (ehtimol bu USD bo‘lishi kerak, UZD emas)
+      "840"  // USD
     ]
   },
 
@@ -31,7 +31,7 @@ const operationModel = new Schema({
   },
 
   type: {
-    type: String,
+    type: String
   },
 
   status: {
@@ -39,25 +39,30 @@ const operationModel = new Schema({
     default: 1
   },
 
+  empID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+
   paymentType: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "Payment_type",
     required: true
   },
 
   populate: {
-    type: Object
+    type: mongoose.Schema.Types.Mixed
+  },
+
+  account: {
+    type: String 
   },
 
   calday: {
     type: String,
     default: moment().format("YYYY-MM-DD")
-  },
-
-  createdAt: {
-    type: Date,
-    default: Date.now
   }
-});
 
-module.exports = model("Operation", operationModel);
+}, { timestamps: true }); 
+module.exports = mongoose.model('Operation', operationSchema);

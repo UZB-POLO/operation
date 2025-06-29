@@ -11,6 +11,7 @@ exports.addAccount = async (req, res) => {
 
     const accountCode = `${user.branch}:${currency}:${user.ID}`;
 
+
     const exists = await Account.findOne({ account: accountCode });
     if (exists) {
       return res.status(400).json({ message: "Account already exists" });

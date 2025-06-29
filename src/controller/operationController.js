@@ -14,7 +14,7 @@ exports.getItems = async (req, res) => {
       if (op?.paymentType?.name) {
         op.paymentType = op.paymentType.name;
       }
-      return op;
+      return operations;
     });
 
     res.json(operations);
@@ -22,11 +22,30 @@ exports.getItems = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+exports.getPrint = async (req, res) => {
+  try {
+    const { id: userID } = req.user;
+    const user = await User.findById(userID);
+    res.status(200).json({
+      message: "Accounts fetched successfully",
+      data: user
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Get accounts failed", error: err.message });
+  }
+};
+
 
 exports.createOperation = async (req, res) => {
   try {
     const { id: userID } = req.user;
     const { currency, amount, type, paymentType } = req.body;
+        const latestAccount = await Account.findOne().sort({ createdAt: -1 });
+        const latestAccountCode = latestAccount?.account || null;
+        if (!latestAccountCode) {
+          return res.status(404).json({ message: "No account found" });
+        }
+        const accountt = latestAccountCode.account
 
     const user = await User.findById(userID);
     if (!user) {
@@ -42,6 +61,7 @@ exports.createOperation = async (req, res) => {
           empID: userID,
           currency,
           amount,
+          accountt,
           type,
           status: 1,
           paymentType: paymentTypeDoc._id,
@@ -174,11 +194,12 @@ exports.remove = async (req, res) => {
 
         if (!account) {
           res.status(404).json({ message: "Account not found" });
-          
+
         }
         else if (operation.type === 'R' && account.saldo < operation.amount) {
-          res.status(400).json({ message: "Not enough balance" });}
-         else {
+          res.status(400).json({ message: "Not enough balance" });
+        }
+        else {
           if (operation.type === 'R') {
             account.out -= operation.amount;
             account.saldo += operation.amount;

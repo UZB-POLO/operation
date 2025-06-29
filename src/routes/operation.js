@@ -7,6 +7,7 @@ const router = express.Router();
 router.use(authMiddleware);
 
 router.get('/', operationController.getItems);
+router.get('/print/:id', operationController.getPrint)
 router.post('/operation', operationController.createOperation);
 router.post('/addApprove/:id', operationController.addApprove);
 router.put('/:id', operationController.update);

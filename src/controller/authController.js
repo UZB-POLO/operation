@@ -1,9 +1,11 @@
 const User = require('../models/userModel');
-const Account = require('../models/accountModel'); 
+const Account = require('../models/accountModel');
+const Operation = require('../models/operationModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 dotenv.config();
+
 
 const createToken = (user) => {
   return jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
@@ -11,8 +13,43 @@ const createToken = (user) => {
 
 exports.register = async (req, res) => {
   try {
-    const { branch, masterBranch, name, surName, lastName, username, password } = req.body;
+    const {
+      branch,
+      masterBranch,
+      name,
+      surName,
+      lastName,
+      username,
+      userData,
+      password,
+      passportSeria,
+      passportNumber,
+      passportRegpalce,
+      passportLocation
+    } = req.body;
+
+
+    const operationData = await Operation.findOne().sort({ createdAt: -1 });
+    if (!operationData) {
+      return res.status(404).json({ message: "No operations found" });
+    }
+
+    const currency = operationData.currency;
+
+
+    const latestAccount = await Account.findOne().sort({ createdAt: -1 });
+    const latestAccountCode = latestAccount?.account || null;
+    if (!latestAccountCode) {
+      return res.status(404).json({ message: "No account found" });
+    }
+    const account = latestAccountCode
+
+
+
+    
+
     const hashedPassword = await bcrypt.hash(password, 10);
+
 
     const user = await User.create({
       branch,
@@ -22,29 +59,58 @@ exports.register = async (req, res) => {
       lastName,
       username,
       fullName: `${surName} ${name} ${lastName}`,
-      password: hashedPassword
+      password: hashedPassword,
+      currency, 
+      account,
+      passport: {
+        seria: passportSeria,
+        number: passportNumber,
+        regpalce: passportRegpalce,
+        location: passportLocation
+      },
+      userData
     });
 
-    const token = createToken(user);
+ 
+  
+    
 
+    operationData.account = latestAccountCode;
+    await operationData.save();
+
+    const token = createToken(user);
     res.status(201).json({ message: "User registered", token });
+
   } catch (err) {
-    res.status(500).json({ message: "Error registering user", error: err.message });
+    res.status(500).json({
+      message: "Error registering user",
+      error: err.message
+    });
   }
 };
+
 
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
+
     const user = await User.findOne({ username });
-    
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
-    
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
     const token = createToken(user);
     res.status(200).json({ message: "Login successful", token });
+
   } catch (err) {
-    res.status(500).json({ message: "Error logging in", error: err.message });
+    res.status(500).json({
+      message: "Error logging in",
+      error: err.message
+    });
   }
 };

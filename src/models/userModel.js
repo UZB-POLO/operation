@@ -37,13 +37,26 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  currency: {
+    type: String,
+    required: false
+  },
   status: {
     type: Number,
     default: 1
   },
+  passport: {
+    type: Object
+  },
+  account: {
+    type: String 
+  },
+  userData: {
+    type: String
+  },
   calday: {
     type: String,
-    default: () => new Date().toISOString().slice(0, 10)  
+    default: () => new Date().toISOString().slice(0, 10)
   },
   createdAt: {
     type: Date,
@@ -52,9 +65,8 @@ const userSchema = new mongoose.Schema({
   loginAt: {
     type: Date,
     default: Date.now
-  },
+  }
 });
-
 
 userSchema.pre("save", async function (next) {
   if (this.isNew) {
