@@ -22,30 +22,38 @@ exports.getItems = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
+
+
 exports.getPrint = async (req, res) => {
   try {
+    let operations = await Operation.findById(req.params.id);
+    if (operations.status != 3) {
+      throw new Error("Status 1 or 2");
+    }
+    let account = await Account.findOne({empID: operations.empID, currency: operations.currency });
     const { id: userID } = req.user;
     const user = await User.findById(userID);
-    res.status(200).json({
-      message: "Accounts fetched successfully",
-      data: user
-    });
+    const payload = { user, operations, account }
+    const check = await require("../templates/zayavleniya")(payload)
+    res.send(check)
   } catch (err) {
     res.status(500).json({ message: "Get accounts failed", error: err.message });
   }
 };
 
 
+
 exports.createOperation = async (req, res) => {
   try {
     const { id: userID } = req.user;
     const { currency, amount, type, paymentType } = req.body;
-        const latestAccount = await Account.findOne().sort({ createdAt: -1 });
-        const latestAccountCode = latestAccount?.account || null;
-        if (!latestAccountCode) {
-          return res.status(404).json({ message: "No account found" });
-        }
-        const accountt = latestAccountCode.account
+    const latestAccount = await Account.findOne().sort({ createdAt: -1 });
+    const latestAccountCode = latestAccount?.account || null;
+    if (!latestAccountCode) {
+      return res.status(404).json({ message: "No account found" });
+    }
+    const accountt = latestAccountCode.account
 
     const user = await User.findById(userID);
     if (!user) {
@@ -96,6 +104,8 @@ exports.createOperation = async (req, res) => {
     });
   }
 };
+
+
 
 exports.addApprove = async (req, res) => {
   try {
@@ -154,6 +164,8 @@ exports.addApprove = async (req, res) => {
   }
 };
 
+
+
 exports.update = async (req, res) => {
   try {
     const operation = await Operation.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -166,6 +178,8 @@ exports.update = async (req, res) => {
     res.status(500).json({ message: "Update failed", error: err.message });
   }
 };
+
+
 
 exports.remove = async (req, res) => {
   try {

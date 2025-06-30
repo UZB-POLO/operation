@@ -1,5 +1,9 @@
-module.exports = async () => {
-    let result = `
+module.exports = async (obj) => {
+  const { user, account, operations } = obj
+  const { passport: { seria , number, regpalce, location}, userData, fullName } = user
+  const {account:accounts} = account
+  const {currency, calday} = operations
+  let result = `
     <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -89,7 +93,7 @@ module.exports = async () => {
 <body>
 
   <h2>АКБ «ИПАК ЙУЛИ»</h2>
-  <p class="centerr" style="height: 15px;"><strong>От ILKHOM SAITOV IZATILLAYEVICH</strong></p>
+  <p class="centerr" style="height: 15px;"><strong>От ${fullName}</strong></p>
   <p class="centerr">(наименование заявителя)</p>
 
   <h3 class="centerr">ЗАЯВЛЕНИЕ</h3>
@@ -101,17 +105,17 @@ module.exports = async () => {
   </div>
   <p class="centerrrr">(депозит до востребования, срочный, сберегательный депозит и др.)</p>
 
-  <p class="center" style="height: 5px;">в Узбекские сумы на имя <strong>ILKHOM SAITOV IZATILLAYEVICH</strong> </p>
+  <p class="center" style="height: 5px;">в ${currency} на имя <strong>${fullName}</strong> </p>
  
     
-    <pre style="height: 20px;">                     (фамилия, имя, отчество)</pre>
+    <pre style="height: 20px;">        (фамилия, имя, отчество)</pre>
 
   <p style="height: 5px;">Сообщаю образец моей подписи (____________________________________) </p>
 
   <pre style="height: 20px;">                          подпись уполномоченного мною лица</pre>
 
-  <p style="height: 5px;"><strong>ILKHOM SAITOV IZATILLAYEVICH</strong>, которая является обязательной</p>
-  <pre>    (фамилия, имя, отчество)</pre>
+  <p style="height: 5px;"><strong>${fullName}</strong>, которая является обязательной</p>
+  <pre>(фамилия, имя, отчество)</pre>
 
   <pre style="height: 5px;">дата <strong>2025-06-26</strong> года _______________________________________</pre>
   <pre>                            (подпись владельца счета)</pre>
@@ -120,22 +124,22 @@ module.exports = async () => {
 
   <h4>Документы на открытие счета, проверил; главный бухгалтер _________________</h4>
 
-  <pre style="height: 5px;">    Разрешаю открыть <strong>срочный счет                                в Узбекские сумы</strong></pre>
+  <pre style="height: 5px;">    Разрешаю открыть <strong>срочный счет                                в ${currency}</strong></pre>
 <pre>(депозит до востребования, срочный, сберегательный депозит и др.)(наименование валюты)</pre>
 
 
   <pre><strong>                    ТОШКЕНТ Ш., "ИПАК ЙУЛИ" АИТ БАНКИНИНГ БОШ ______________
                                            ОФИСИ</strong></pre>
 
-  <p>Счет открыт: <strong>2025-06-26</strong> года</p>
-  <p>Номер счета: <strong>20606000062138721041</strong></p>
+  <p>Счет открыт: <strong>${calday}</strong> года</p>
+  <p>Номер счета: <strong>${accounts}</strong></p>
   <p>Прочие отметки (данные паспорта):</p>
   <ul>
     <li>Дата рождения: <strong>1986-05-21</strong></li>
-    <li>Паспорт, серия: <strong>AD 1696363</strong></li>
-    <li>Дата выдачи паспорта: <strong>2022-08-24</strong></li>
-    <li>Место выдачи: <strong>IPV26266</strong></li>
-    <li>Место жительства: <strong>SHALOLA MFY TEMUR MALIK 1 PROYEZD 42</strong></li>
+    <li>Паспорт, серия: <strong><b>${seria} ${number}</b></strong></li>
+    <li>Дата выдачи паспорта: <strong>${userData}</strong></li>
+    <li>Место выдачи: <strong>${regpalce}</strong></li>
+    <li>Место жительства: <strong>${location}</strong></li>
   </ul>
 
   <p>№ вкладной книжки: _______________________</p>
@@ -143,5 +147,5 @@ module.exports = async () => {
 </body>
 </html>
 `
-    return result
+  return result
 }

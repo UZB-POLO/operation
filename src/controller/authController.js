@@ -1,6 +1,5 @@
 const User = require('../models/userModel');
-const Account = require('../models/accountModel');
-const Operation = require('../models/operationModel');
+
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
@@ -28,28 +27,7 @@ exports.register = async (req, res) => {
       passportLocation
     } = req.body;
 
-
-    const operationData = await Operation.findOne().sort({ createdAt: -1 });
-    if (!operationData) {
-      return res.status(404).json({ message: "No operations found" });
-    }
-
-    const currency = operationData.currency;
-
-
-    const latestAccount = await Account.findOne().sort({ createdAt: -1 });
-    const latestAccountCode = latestAccount?.account || null;
-    if (!latestAccountCode) {
-      return res.status(404).json({ message: "No account found" });
-    }
-    const account = latestAccountCode
-
-
-
-    
-
     const hashedPassword = await bcrypt.hash(password, 10);
-
 
     const user = await User.create({
       branch,
@@ -60,8 +38,6 @@ exports.register = async (req, res) => {
       username,
       fullName: `${surName} ${name} ${lastName}`,
       password: hashedPassword,
-      currency, 
-      account,
       passport: {
         seria: passportSeria,
         number: passportNumber,
@@ -70,13 +46,6 @@ exports.register = async (req, res) => {
       },
       userData
     });
-
- 
-  
-    
-
-    operationData.account = latestAccountCode;
-    await operationData.save();
 
     const token = createToken(user);
     res.status(201).json({ message: "User registered", token });
