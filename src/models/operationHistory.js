@@ -1,14 +1,11 @@
 const mongoose = require('mongoose');
 const moment = require('moment');
 
-const operationSchema = new mongoose.Schema({
+const operationHistorySchema = new mongoose.Schema({
   branch: {
     type: String,
     required: true,
-    enum: [
-      "00444", // Markaz
-      "01145"  // Shayxontohur
-    ]
+    enum: ["00444", "01145"]
   },
 
   masterBranch: {
@@ -19,10 +16,7 @@ const operationSchema = new mongoose.Schema({
   currency: {
     type: String,
     required: true,
-    enum: [
-      "000", // UZS
-      "840"  // USD
-    ]
+    enum: ["000", "840"]
   },
 
   amount: {
@@ -62,7 +56,7 @@ const operationSchema = new mongoose.Schema({
   calday: {
     type: String,
     default: moment().format("YYYY-MM-DD")
-  }
+  },
+}, { timestamps: true });
 
-}, { timestamps: true }); 
-module.exports = mongoose.model('Operation', operationSchema);
+module.exports = mongoose.model('OperationHistory', operationHistorySchema);

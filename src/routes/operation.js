@@ -8,6 +8,7 @@ router.use(authMiddleware);
 
 router.get('/', operationController.getItems);
 router.get('/print/:id', operationController.getPrint)
+router.get('/get-by-master',authMiddleware, operationController.getByMasterBranch); 
 router.post('/operation', operationController.createOperation);
 router.post('/addApprove/:id', operationController.addApprove);
 router.put('/:id', operationController.update);

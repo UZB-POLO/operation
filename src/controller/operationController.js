@@ -3,6 +3,10 @@ const User = require('../models/userModel');
 const Account = require('../models/accountModel');
 const OperationLog = require('../models/operationLogModel');
 const PaymentType = require('../models/paymentTypeModel');
+const OperationHistory = require('../models/operationHistory'); 
+const moment = require('moment');
+
+
 
 exports.getItems = async (req, res) => {
   try {
@@ -23,8 +27,6 @@ exports.getItems = async (req, res) => {
   }
 };
 
-
-
 exports.getPrint = async (req, res) => {
   try {
     let operations = await Operation.findById(req.params.id);
@@ -42,6 +44,57 @@ exports.getPrint = async (req, res) => {
   }
 };
 
+
+
+
+exports.getByMasterBranch = async (req, res) => {
+  try {
+    const { masterBranch, calday } = req.query;
+
+    if (!masterBranch || !calday) {
+      return res.status(400).json({ message: "masterBranch yoki calday yo'q" });
+    }
+
+    const today = moment().format("YYYY-MM-DD");
+    const query = { masterBranch, calday };
+
+
+    const SourceModel = calday === today ? Operation : OperationHistory;
+
+    const operations = await SourceModel.find(query);
+
+    if (!operations || operations.length === 0) {
+      return res.status(404).json({ message: "Operation not found", query });
+    }
+    if (calday === today) {
+      await Promise.all(
+        operations.map(async (op) => {
+          const exists = await OperationHistory.findOne({ operationID: op._id });
+    
+          if (!exists) {
+
+            await OperationHistory.create({
+              ...op.toObject(),
+              _id: undefined,
+              operationID: op._id,
+              changedBy: req.user.id,
+              changeType: 'read'
+            });
+    
+         
+            await Operation.findByIdAndDelete(op._id);
+          }
+        })
+      );
+    }
+    
+    
+    return res.status(200).json({ message: "Success", data: operations });
+
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
 
 
 exports.createOperation = async (req, res) => {
