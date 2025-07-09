@@ -1,14 +1,15 @@
 const User = require('../models/userModel');
-
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
+
 dotenv.config();
 
 
 const createToken = (user) => {
   return jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
+
 
 exports.register = async (req, res) => {
   try {

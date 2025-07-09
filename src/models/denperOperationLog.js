@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema, model, Types } = mongoose;
 
-const operationLogSchema = new Schema({
+const denperOperationLogSchema = new Schema({
   empID: {
     type: Types.ObjectId,
     required: true,
@@ -14,7 +14,7 @@ const operationLogSchema = new Schema({
     type: String,
     required: true,
   },
-
+  
   status: {
     type: Number,
     required: true,
@@ -27,4 +27,4 @@ const operationLogSchema = new Schema({
 
 
 
-module.exports = model("operationLog", operationLogSchema);
+module.exports = model("denperOperationLog", denperOperationLogSchema);

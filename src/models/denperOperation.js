@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const moment = require('moment');
 
-const operationSchema = new mongoose.Schema({
+const denperOperationSChema = new mongoose.Schema({
   branch: {
     type: String,
     required: true,
@@ -17,13 +17,10 @@ const operationSchema = new mongoose.Schema({
   },
 
   currency: {
-    type: String,
-    required: true,
-    enum: [
-      "000", // UZS
-      "840"  // USD
-    ]
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Currency'
   },
+
 
   amount: {
     type: Number,
@@ -65,4 +62,4 @@ const operationSchema = new mongoose.Schema({
   }
 
 }, { timestamps: true });
-module.exports = mongoose.model('Operation', operationSchema);
+module.exports = mongoose.model('DenperOperation', denperOperationSChema);

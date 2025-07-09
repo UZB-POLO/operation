@@ -1,12 +1,13 @@
 const Account = require('../models/accountModel');
 const User = require('../models/userModel');
 
+
 exports.addAccount = async (req, res) => {
   try {
-    const { id: userID } = req.user; 
+    const { id: userID } = req.user;
     const { currency } = req.body;
 
-    const user = await User.findById(userID); 
+    const user = await User.findById(userID);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const accountCode = `${user.branch}:${currency}:${user.ID}`;
@@ -36,7 +37,7 @@ exports.addAccount = async (req, res) => {
     });
 
   } catch (err) {
-    console.log(err); 
+    console.log(err);
     res.status(500).json({
       message: "Account creation error",
       error: err.message
@@ -60,15 +61,14 @@ exports.getByEmpIdAccounts = async (req, res) => {
 
 
 exports.getAccounts = async (req, res) => {
-    try {
-      const { id: userID } = req.user;
-      const accounts = await Account.find();
-      res.status(200).json({
-        message: "Accounts fetched successfully",
-        data: accounts
-      });
-    } catch (err) {
-      res.status(500).json({ message: "Get accounts failed", error: err.message });
-    }
-  };
-  
+  try {
+    const { id: userID } = req.user;
+    const accounts = await Account.find();
+    res.status(200).json({
+      message: "Accounts fetched successfully",
+      data: accounts
+    });
+  } catch (err) {
+    res.status(500).json({ message: "Get accounts failed", error: err.message });
+  }
+};

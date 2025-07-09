@@ -50,7 +50,7 @@ const operationHistorySchema = new mongoose.Schema({
   },
 
   account: {
-    type: String 
+    type: String
   },
 
   calday: {

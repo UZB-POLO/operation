@@ -49,7 +49,7 @@ const userSchema = new mongoose.Schema({
     type: Object
   },
   account: {
-    type: String 
+    type: String
   },
   userData: {
     type: String

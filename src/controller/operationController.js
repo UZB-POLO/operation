@@ -1,31 +1,36 @@
-const Operation = require('../models/operationModel');
+const Operation = require('../models/operationModel')
 const User = require('../models/userModel');
 const Account = require('../models/accountModel');
 const OperationLog = require('../models/operationLogModel');
 const PaymentType = require('../models/paymentTypeModel');
-const OperationHistory = require('../models/operationHistory'); 
+const OperationHistory = require('../models/operationHistory');
 const moment = require('moment');
 
 
 
 exports.getItems = async (req, res) => {
   try {
+
     let operations = await Operation.find()
-      .populate('paymentType', 'name')
-      .lean();
 
-    operations = operations.map(op => {
-      if (op?.paymentType?.name) {
-        op.paymentType = op.paymentType.name;
-      }
-      return operations;
-    });
+    let result = [];
+    for (let i = 0; i < operations.length; i++) {
+      const element = operations[i];
+      const { name } = await PaymentType.findById(element.paymentType)
+      result.push({
+        ...element.toObject(),
+        populate: {
+          paymentName: name
+        }
+      });
+    }
 
-    res.json(operations);
+    res.json(result);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 exports.getPrint = async (req, res) => {
   try {
@@ -33,7 +38,7 @@ exports.getPrint = async (req, res) => {
     if (operations.status != 3) {
       throw new Error("Status 1 or 2");
     }
-    let account = await Account.findOne({empID: operations.empID, currency: operations.currency });
+    let account = await Account.findOne({ empID: operations.empID, currency: operations.currency });
     const { id: userID } = req.user;
     const user = await User.findById(userID);
     const payload = { user, operations, account }
@@ -45,14 +50,14 @@ exports.getPrint = async (req, res) => {
 };
 
 
-
-
 exports.getByMasterBranch = async (req, res) => {
   try {
-    const { masterBranch, calday } = req.query;
+ 
+    const masterBranch = req.query.masterBranch;
+    const calday = req.query.calday;
 
     if (!masterBranch || !calday) {
-      return res.status(400).json({ message: "masterBranch yoki calday yo'q" });
+      return res.status(400).json({ message: "masterBranch or calday not found" });
     }
 
     const today = moment().format("YYYY-MM-DD");
@@ -70,7 +75,7 @@ exports.getByMasterBranch = async (req, res) => {
       await Promise.all(
         operations.map(async (op) => {
           const exists = await OperationHistory.findOne({ operationID: op._id });
-    
+
           if (!exists) {
 
             await OperationHistory.create({
@@ -80,15 +85,15 @@ exports.getByMasterBranch = async (req, res) => {
               changedBy: req.user.id,
               changeType: 'read'
             });
-    
-         
+
+
             await Operation.findByIdAndDelete(op._id);
           }
         })
       );
     }
-    
-    
+
+
     return res.status(200).json({ message: "Success", data: operations });
 
   } catch (error) {
@@ -101,12 +106,15 @@ exports.createOperation = async (req, res) => {
   try {
     const { id: userID } = req.user;
     const { currency, amount, type, paymentType } = req.body;
-    const latestAccount = await Account.findOne().sort({ createdAt: -1 });
+    const latestAccount = await Account.findOne({ empID: userID, currency })
+
     const latestAccountCode = latestAccount?.account || null;
+   
+    
     if (!latestAccountCode) {
       return res.status(404).json({ message: "No account found" });
     }
-    const accountt = latestAccountCode.account
+    const accountt = latestAccountCode
 
     const user = await User.findById(userID);
     if (!user) {
@@ -116,13 +124,14 @@ exports.createOperation = async (req, res) => {
       if (!paymentTypeDoc) {
         res.status(400).json({ message: "Invalid paymentType ID" });
       } else {
+
         const operation = await Operation.create({
           branch: user.branch,
           masterBranch: user.masterBranch,
           empID: userID,
           currency,
           amount,
-          accountt,
+          account: accountt,
           type,
           status: 1,
           paymentType: paymentTypeDoc._id,
@@ -157,7 +166,6 @@ exports.createOperation = async (req, res) => {
     });
   }
 };
-
 
 
 exports.addApprove = async (req, res) => {
@@ -218,7 +226,6 @@ exports.addApprove = async (req, res) => {
 };
 
 
-
 exports.update = async (req, res) => {
   try {
     const operation = await Operation.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -231,7 +238,6 @@ exports.update = async (req, res) => {
     res.status(500).json({ message: "Update failed", error: err.message });
   }
 };
-
 
 
 exports.remove = async (req, res) => {
@@ -292,3 +298,4 @@ exports.remove = async (req, res) => {
     res.status(500).json({ message: "Delete failed", error: err.message });
   }
 };
+
