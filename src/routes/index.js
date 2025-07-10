@@ -6,6 +6,7 @@ const currencies = require("./currencies")
 const denper = require("./denperRouter")
 const fills = require("./fills")
 const withdraw = require("./withdraw")
+const exchange = require("./exchenges")
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use("/currency", currencies)
 router.use("/denper", denper)
 router.use("/fills", fills)
 router.use("/withdraw", withdraw)
+router.use("/exchange", exchange)
 
 module.exports = router;
