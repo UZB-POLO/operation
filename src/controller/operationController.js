@@ -52,7 +52,7 @@ exports.getPrint = async (req, res) => {
 
 exports.getByMasterBranch = async (req, res) => {
   try {
- 
+
     const masterBranch = req.query.masterBranch;
     const calday = req.query.calday;
 
@@ -109,8 +109,8 @@ exports.createOperation = async (req, res) => {
     const latestAccount = await Account.findOne({ empID: userID, currency })
 
     const latestAccountCode = latestAccount?.account || null;
-   
-    
+
+
     if (!latestAccountCode) {
       return res.status(404).json({ message: "No account found" });
     }

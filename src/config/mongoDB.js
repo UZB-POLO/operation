@@ -1,6 +1,7 @@
 const { connect } = require("mongoose");
 const dotenv = require("dotenv/config");
 
+
 async function connectToMongoDB() {
     try {
         const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/ipak_yoli_banki";

@@ -3,6 +3,7 @@ const User = require('../models/userModel');
 const Account = require('../models/accountModel');
 const WithdrawLog = require('../models/withdrawLog');
 
+
 exports.addItem = async (req, res) => {
     try {
         const { id: userID } = req.user;
@@ -42,6 +43,7 @@ exports.addItem = async (req, res) => {
         res.status(500).json({ message: "Error while creating withdraw", error: err.message });
     }
 };
+
 
 exports.getItems = async (req, res) => {
     try {
@@ -118,3 +120,46 @@ exports.deleteItem = async (req, res) => {
         res.status(500).json({ message: "Error while deleting withdraw", error: err.message });
     }
 };
+
+
+exports.groupedWithdrawStats = async (req, res) => {
+    try {
+        const withdraws = await Withdraw.find();
+
+        const grouped = {};
+
+        for (const w of withdraws) {
+            if (!w.terminal || !w.currency) continue;
+
+            const key = `${w.terminal}_${w.currency}`;
+
+            if (!grouped[key]) {
+                grouped[key] = {
+                    terminal: w.terminal,
+                    currency: w.currency,
+                    totalAmount: 0,
+                    count: 0
+                };
+            }
+
+            grouped[key].totalAmount += Number(w.amount) || 0;
+            grouped[key].count += 1;
+        }
+
+        const result = Object.values(grouped);
+
+        res.status(200).json({
+            message: "Withdraws count successfully",
+            data: result
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({
+            message: "Error count withdraws",
+            error: err.message
+        });
+    }
+};
+
+

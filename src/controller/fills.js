@@ -74,6 +74,7 @@ exports.addItem = async (req, res) => {
     }
 };
 
+
 exports.getItems = async (req, res) => {
     try {
         const fills = await Fills.find();
@@ -90,6 +91,7 @@ exports.getItems = async (req, res) => {
         });
     }
 };
+
 
 exports.updateItem = async (req, res) => {
     try {
@@ -123,6 +125,7 @@ exports.updateItem = async (req, res) => {
         });
     }
 };
+
 
 exports.deleteItem = async (req, res) => {
     try {
