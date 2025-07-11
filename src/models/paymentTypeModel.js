@@ -1,11 +1,25 @@
-const { Schema, model, Types } = require("mongoose");
+const { Schema, model } = require("mongoose");
 
 const paymentTypeSchema = new Schema({
   name: {
     type: String,
-    enum: ["наличные", "безналичный"],
     required: true
+  },
+  type: {
+    name: {
+      type: String,
+      required: true
+    },
+    value: {
+      type: String,
+      enum: ["cash", "non_cash"],
+      required: true
+    }
+  },
+  status: {
+    type: Number,
+    default: 1
   }
 });
 
-module.exports = model("Payment_type", paymentTypeSchema); 
+module.exports = model("PaymentType", paymentTypeSchema);

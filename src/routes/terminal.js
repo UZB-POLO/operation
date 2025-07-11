@@ -1,11 +1,10 @@
 const express = require('express');
-const exchange = require('../controller/exchenges')
+const terminal = require('../controller/terminal')
 const auth = require('../guards/authMiddleware'); 
 const router = express.Router();
 
 
 
-router.get('/countAmount', exchange.countAmount)
-router.get('/getItems', exchange.getItems)
+router.get('/terminal', terminal.getTerminal)
 
 module.exports = router;

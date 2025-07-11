@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
+const { Schema, model } = require("mongoose");
 const moment = require('moment');
 
-const { Schema, model } = require("mongoose");
 const fillLogSchema = new Schema({
   transaction_id: {
     type: mongoose.Types.ObjectId,
